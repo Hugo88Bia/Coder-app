@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Codewise — Learn to Code, Properly</title>
+<style>
+  :root {
+    --ink: #16130d;
+    --paper: #f4efe4;
+    --panel: #fcf9f1;
+    --line: #ddd2bd;
+    --amber: #b8620f;
+    --amber-lt: #e39a45;
+    --teal: #1f5f5b;
+    --green: #3d6b38;
+    --red: #a23421;
+    --muted: #7d715c;
+    --code-bg: #efe7d4;
+    --code-bar: #e4d9c0;
+    --code-text: #2a2418;
+    --code-note: #94815f;
+    --mono: 'SF Mono','Fira Code','Consolas',monospace;
+    --serif: Georgia,'Times New Roman',serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--serif); background: var(--paper); color: var(--ink); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+  header { padding: 12px 20px; border-bottom: 2px solid var(--ink); background: var(--panel); display: flex; align-items: center; justify-content: space-between; }
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand h1 { font-size: 20px; letter-spacing: -0.5px; }
+  .brand .tag { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--amber); }
+  .track { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .track b { color: var(--amber); }
+  .stats { display: flex; align-items: center; gap: 16px; }
+  .stat { display: flex; align-items: center; gap: 5px; font-family: var(--mono); font-size: 15px; font-weight: 700; color: var(--ink); }
+  .stat .stat-ico { font-size: 16px; }
+  .stat .stat-lbl { font-size: 10px; color: var(--muted); font-weight: 400; letter-spacing: 1px; }
+  .stat.goal { position: relative; }
+  .stat.goal .goal-txt { position: absolute; left: 0; top: 0; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--amber); }
+  #goalRing { transition: stroke-dashoffset 0.6s ease; }
+  .xp-pop { position: fixed; top: 70px; left: 50%; transform: translateX(-50%) translateY(-20px); background: var(--green); color: #fff; font-family: var(--mono); font-weight: 700; font-size: 15px; padding: 10px 22px; border-radius: 30px; opacity: 0; pointer-events: none; z-index: 100; transition: all 0.4s ease; box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+  .xp-pop.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  .layout { flex: 1; display: flex; overflow: hidden; }
+
+  /* Sidebar */
+  aside { width: 230px; border-right: 1px solid var(--line); background: var(--panel); overflow-y: auto; flex-shrink: 0; }
+  .sec-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); padding: 16px 16px 6px; }
+  .l-item { padding: 11px 16px; border-bottom: 1px solid var(--line); display: flex; gap: 10px; align-items: center; cursor: pointer; }
+  .l-item.locked { opacity: 0.4; cursor: not-allowed; }
+  .l-item:not(.locked):hover { background: #efe7d6; }
+  .l-item.active { background: var(--ink); color: var(--paper); }
+  .l-item .dot { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid var(--line); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 10px; font-weight: 700; }
+  .l-item.active .dot { border-color: var(--amber-lt); color: var(--amber-lt); }
+  .l-item.done .dot { background: var(--green); border-color: var(--green); color: #fff; }
+  .l-item .nm { font-size: 14px; }
+  .l-item .lock { margin-left: auto; font-size: 11px; }
+
+  /* Main */
+  main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .content { flex: 1; overflow-y: auto; padding: 26px 34px; max-width: 760px; }
+  .step-pill { display: inline-block; font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: #fff; background: var(--teal); padding: 3px 10px; border-radius: 2px; margin-bottom: 14px; }
+  h2 { font-size: 26px; letter-spacing: -0.5px; margin-bottom: 4px; }
+  .sub { font-family: var(--mono); font-size: 12px; color: var(--amber); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 20px; }
+  .block { margin-bottom: 20px; }
+  .block h3 { font-size: 15px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 1px; color: var(--teal); margin-bottom: 10px; }
+  p { font-size: 16px; line-height: 1.7; margin-bottom: 12px; color: #2f281d; }
+  .analogy { border-left: 3px solid var(--amber); padding: 12px 16px; background: #f7efdd; font-size: 15px; line-height: 1.6; margin-bottom: 16px; border-radius: 0 4px 4px 0; }
+  .analogy b { color: var(--amber); }
+  code { font-family: var(--mono); font-size: 14px; background: #e9e0cd; padding: 1px 6px; border-radius: 3px; }
+
+  .example { background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+  .example .ln { display: flex; font-family: var(--mono); font-size: 13.5px; line-height: 1.7; }
+  .example .ln .code { color: var(--code-text); padding: 0 14px; white-space: pre; }
+  .example .ln .note { color: var(--code-note); font-style: italic; padding-right: 14px; margin-left: auto; font-size: 12px; }
+  .example .body { padding: 14px 0; }
+
+  .task-box { border: 2px solid var(--ink); border-radius: 5px; padding: 18px; margin-bottom: 16px; background: var(--panel); }
+  .task-box .th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--amber); margin-bottom: 8px; }
+  .task-box p { font-size: 15px; margin-bottom: 0; }
+
+  .editor { background: var(--code-bg); border: 1px solid var(--line); border-radius: 5px; overflow: hidden; margin-bottom: 12px; }
+  .editor .bar { display: flex; justify-content: space-between; align-items: center; padding: 7px 12px; background: var(--code-bar); }
+  .editor .bar span { font-family: var(--mono); font-size: 10px; color: var(--code-note); text-transform: uppercase; letter-spacing: 1px; }
+  textarea { width: 100%; min-height: 130px; font-family: var(--mono); font-size: 14px; line-height: 1.6; padding: 14px; border: none; background: var(--code-bg); color: var(--code-text); outline: none; resize: vertical; tab-size: 2; }
+
+  .actions { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+  button { font-family: var(--mono); font-size: 13px; font-weight: 700; border: none; padding: 9px 20px; cursor: pointer; border-radius: 3px; letter-spacing: 0.5px; }
+  .run { background: var(--teal); color: #fff; }
+  .run:hover { background: #164340; }
+  .check { background: var(--amber); color: #fff; }
+  .check:hover { background: #8f4b0a; }
+  .hint { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+  .hint:hover { background: #efe7d6; }
+  .next { background: var(--green); color: #fff; margin-left: auto; }
+  .next:hover { background: #2e5029; }
+  .next:disabled { background: #c3bba8; cursor: not-allowed; }
+
+  .out { font-family: var(--mono); font-size: 13px; line-height: 1.6; padding: 12px 14px; background: var(--code-bg); border: 1px solid var(--line); color: var(--code-text); border-radius: 5px; white-space: pre-wrap; min-height: 20px; margin-bottom: 12px; }
+  .out .err { color: var(--red); font-weight: 700; }
+  .out .dim { color: var(--muted); }
+  .preview-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; color: var(--teal); margin-bottom: 6px; }
+  .preview { width: 100%; min-height: 160px; background: #fff; border: 1px solid var(--line); border-radius: 5px; margin-bottom: 12px; }
+
+  .feedback { padding: 12px 16px; border-radius: 5px; font-size: 15px; line-height: 1.5; margin-bottom: 14px; }
+  .feedback.good { background: #e4efdd; border-left: 3px solid var(--green); color: #274d22; }
+  .feedback.bad { background: #f6e2dd; border-left: 3px solid var(--red); color: #7a281a; }
+  .feedback.tip { background: #f7efdd; border-left: 3px solid var(--amber); color: #6d3f0a; }
+
+  .celebrate { text-align: center; padding: 40px; }
+  .celebrate h2 { font-size: 30px; }
+
+  @media (max-width: 720px) {
+    aside { display: none; }
+    .content { padding: 20px; }
+    .example .ln .note { display: none; }
+    header { padding: 10px 14px; }
+    .brand .tag { display: none; }
+    .stats { gap: 11px; }
+    .stat { font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><h1>Codewise</h1><span class="tag">Learn to code, properly</span></div>
+  <div class="stats">
+    <div class="stat" title="Day streak"><span class="stat-ico">🔥</span><b id="streakNum">0</b></div>
+    <div class="stat" title="Total XP"><span class="stat-ico">⭐</span><b id="xpNum">0</b><span class="stat-lbl">XP</span></div>
+    <div class="stat goal" title="Today's goal">
+      <svg width="34" height="34" viewBox="0 0 34 34">
+        <circle cx="17" cy="17" r="14" fill="none" stroke="var(--line)" stroke-width="4"/>
+        <circle id="goalRing" cx="17" cy="17" r="14" fill="none" stroke="var(--amber)" stroke-width="4"
+          stroke-dasharray="88" stroke-dashoffset="88" stroke-linecap="round" transform="rotate(-90 17 17)"/>
+      </svg>
+      <span id="goalTxt" class="goal-txt">0/3</span>
+    </div>
+  </div>
+</header>
+<div id="xpPop" class="xp-pop"></div>
+
+<div class="layout">
+  <aside id="sidebar"></aside>
+  <main><div class="content" id="content"></div></main>
+</div>
+
+<script>
+// ---- COURSE DATA ----
+// Each lesson: concept (analogy + explanation), a worked example (lines with notes),
+// a task, starter code, a checker fn (returns {pass, msg}), and progressive hints.
+const course = [
+  {
+    id: "print",
+    name: "Your first output",
+    sub: "Making the computer speak",
+    concept: {
+      analogy: `Think of <b>console.log</b> as the computer's voice. Whatever you hand it, it says out loud. Nothing more mysterious than that.`,
+      body: `<p>Before a program can do anything useful, it needs a way to <em>show</em> you what it's doing. In JavaScript that's <code>console.log()</code>.</p>
+             <p>Whatever you want to print goes <strong>inside the brackets</strong>. And if it's text, it also goes <strong>inside quotes</strong>. So text you print sits in two layers: the brackets, and the quotes inside them — like this: <code>console.log("your words here")</code>.</p>
+             <p>Those quotes matter more than they look. They tell the computer "this is words, not a command." Text in quotes is called a <strong>string</strong>.</p>
+             <p><strong>The one trap:</strong> your words must go <em>between</em> the quotes, not after them. Writing <code>console.log("")i am here</code> won't work — the computer prints the empty quotes, then trips over the loose words outside and stops with an error. Everything you want to say belongs <em>inside</em> the <code>" "</code>.</p>`
+    },
+    example: [
+      { code: `console.log("Hello!");`, note: `words go inside the " "` },
+      { code: `console.log("I am learning to code");`, note: `all inside the quotes` }
+    ],
+    task: `Print a message that says <code>I am Hugo</code> (or your own name). Type your words <strong>between the empty quotes</strong> that are already there — don't add anything after them. Then press Check.`,
+    starter: `console.log("");`,
+    hints: [
+      `Click between the two quote marks and type there: console.log("I am Hugo");`,
+      `Your words go INSIDE the "  ". Nothing should come after the );`,
+      `The finished line is exactly: console.log("I am Hugo");`
+    ],
+    check: (code, out) => {
+      if (!/console\.log/.test(code)) return { pass:false, msg:"I don't see a console.log yet. That's the command that prints." };
+      if (out.trim() === "") return { pass:false, msg:"It ran, but printed nothing. Type your words between the two quote marks." };
+      return { pass:true, msg:`It spoke! You printed: "${out.trim()}". You've just written and run real code.` };
+    }
+  },
+  {
+    id: "variables",
+    name: "Storing information",
+    sub: "Variables",
+    concept: {
+      analogy: `A <b>variable</b> is a labelled box. You put a value in it, write a name on the side, and from then on you just call it by name.`,
+      body: `<p>Programs need to remember things — a name, a price, a score. You store a value in a <strong>variable</strong>.</p>
+             <p>You create one with the word <code>let</code>, then a name you choose, an <code>=</code> sign, and the value. Example: <code>let age = 38;</code> means "make a box called age, put 38 in it."</p>
+             <p>After that, writing <code>age</code> anywhere gives you back 38.</p>`
+    },
+    example: [
+      { code: `let name = "Marina";`, note: `box "name" holds Marina` },
+      { code: `console.log(name);`, note: `prints:  Marina` },
+      { code: `console.log("Hi " + name);`, note: `joins text + box → Hi Marina` }
+    ],
+    task: `Make a variable called <code>city</code>, store the text <code>Jersey</code> in it, then print it. Press Check.`,
+    starter: `let city = "";\nconsole.log(city);`,
+    hints: [
+      `Fill in the quotes: let city = "Jersey";`,
+      `Then make sure you print it: console.log(city);`,
+      `Full answer: let city = "Jersey"; then console.log(city);`
+    ],
+    check: (code, out) => {
+      if (!/let\s+city/.test(code)) return { pass:false, msg:"Make a variable named exactly 'city' using: let city = ..." };
+      if (!/console\.log/.test(code)) return { pass:false, msg:"You've made the box — now print it with console.log(city)." };
+      if (!/jersey/i.test(out)) return { pass:false, msg:"Nearly — the box should hold 'Jersey' and get printed. Check your quotes." };
+      return { pass:true, msg:"Stored and printed. You now know how to make a program remember things." };
+    }
+  },
+  {
+    id: "maths",
+    name: "Working with numbers",
+    sub: "Maths & operators",
+    concept: {
+      analogy: `The computer is a very fast, very literal calculator. Give it numbers and the signs <b>+ − * /</b> and it works out the answer instantly.`,
+      body: `<p>Numbers don't need quotes — quotes are only for text. You can do maths directly: <code>+</code> add, <code>-</code> subtract, <code>*</code> multiply, <code>/</code> divide.</p>
+             <p>And you can store the result in a variable, then use it. This is how every price, total, and score in every app gets worked out.</p>`
+    },
+    example: [
+      { code: `let price = 40;`, note: `a number — no quotes` },
+      { code: `let tax = price * 0.2;`, note: `40 × 0.2 = 8` },
+      { code: `console.log(price + tax);`, note: `prints:  48` }
+    ],
+    task: `You have <code>let a = 15;</code> and <code>let b = 6;</code>. Print their total (it should be 21). Press Check.`,
+    starter: `let a = 15;\nlet b = 6;\n// print a + b below\n`,
+    hints: [
+      `Add them inside a log: console.log(a + b);`,
+      `Don't put a and b in quotes — you want the maths, not the text.`,
+      `Answer: console.log(a + b);`
+    ],
+    check: (code, out) => {
+      if (!/console\.log/.test(code)) return { pass:false, msg:"Print the result with console.log(...)." };
+      if (/["']a["']|["']b["']/.test(code)) return { pass:false, msg:"Take the quotes off a and b — quotes make them text, so you'd get 'a + b' not 21." };
+      if (out.trim() !== "21") return { pass:false, msg:`Expected 21 but got "${out.trim()}". Make sure you're adding a + b.` };
+      return { pass:true, msg:"21 — exactly right. You just made the computer do the arithmetic." };
+    }
+  },
+  {
+    id: "if",
+    name: "Making decisions",
+    sub: "if / else",
+    concept: {
+      analogy: `<b>if / else</b> is a fork in the road. "IF this is true, go left; otherwise, go right." The computer checks the condition and picks a path.`,
+      body: `<p>Real programs react to things. You write <code>if (condition) { ... }</code> — if the condition is true, the code in the braces runs. Add <code>else { ... }</code> for what happens otherwise.</p>
+             <p>Conditions use: <code>&gt;</code> greater than, <code>&lt;</code> less than, <code>&gt;=</code> at least, <code>===</code> exactly equal.</p>`
+    },
+    example: [
+      { code: `let score = 72;`, note: `` },
+      { code: `if (score >= 50) {`, note: `is 72 ≥ 50? yes` },
+      { code: `  console.log("Pass");`, note: `← this runs` },
+      { code: `} else {`, note: `` },
+      { code: `  console.log("Fail");`, note: `skipped` },
+      { code: `}`, note: `` }
+    ],
+    task: `A variable <code>temp = 30;</code> is set. Print <code>Hot</code> if temp is above 25, otherwise print <code>Cool</code>. Press Check.`,
+    starter: `let temp = 30;\n\nif (temp > 25) {\n  \n} else {\n  \n}`,
+    hints: [
+      `Inside the first braces: console.log("Hot");`,
+      `Inside the else braces: console.log("Cool");`,
+      `Since temp is 30 (above 25), running it should print Hot.`
+    ],
+    check: (code, out) => {
+      if (!/if\s*\(/.test(code)) return { pass:false, msg:"You'll need an if(...) statement here." };
+      if (!/console\.log/.test(code)) return { pass:false, msg:"Put a console.log inside each branch." };
+      if (out.trim() !== "Hot") return { pass:false, msg:`temp is 30, so the 'above 25' path should run and print Hot. You got "${out.trim()}".` };
+      return { pass:true, msg:"Hot — correct. Your program made a decision on its own. This is the heart of every app." };
+    }
+  },
+  {
+    id: "loops",
+    name: "Repeating work",
+    sub: "Loops",
+    concept: {
+      analogy: `A <b>loop</b> is like telling someone "do this 10 times" instead of writing the instruction out 10 times. The computer handles the repetition.`,
+      body: `<p>When you need to repeat something, you use a loop. The <code>for</code> loop has three parts: where to start, how long to keep going, and how to step each time.</p>
+             <p><code>for (let i = 1; i &lt;= 5; i++)</code> means: start at 1, keep going while i is 5 or less, add 1 each round. <code>i++</code> is shorthand for "add one to i."</p>`
+    },
+    example: [
+      { code: `for (let i = 1; i <= 3; i++) {`, note: `start 1, stop after 3` },
+      { code: `  console.log(i);`, note: `prints 1, then 2, then 3` },
+      { code: `}`, note: `` }
+    ],
+    task: `Write a loop that counts and prints from <code>1</code> to <code>5</code>. Press Check.`,
+    starter: `for (let i = 1; i <= 5; i++) {\n  \n}`,
+    hints: [
+      `Inside the braces, print the counter: console.log(i);`,
+      `The loop is already set to go 1 → 5. You just need to print i each time.`,
+      `Answer: put console.log(i); between the braces.`
+    ],
+    check: (code, out) => {
+      if (!/for\s*\(/.test(code)) return { pass:false, msg:"Use a for loop for this one." };
+      const nums = out.trim().split(/\s+/);
+      if (nums.join(",") !== "1,2,3,4,5") return { pass:false, msg:`It should print 1 2 3 4 5 (each on its own line). You got: ${out.trim() || "nothing"}.` };
+      return { pass:true, msg:"1 through 5 — perfect. You just made the computer repeat work for you. That's a superpower." };
+    }
+  },
+  {
+    id: "functions",
+    name: "Reusable actions",
+    sub: "Functions",
+    concept: {
+      analogy: `A <b>function</b> is a recipe. You write the steps once, give the recipe a name, and then just say the name whenever you want it done — you don't rewrite the steps each time.`,
+      body: `<p>Functions let you package code and reuse it. You define one with <code>function name(input) { ... }</code>, then <em>call</em> it by writing <code>name(value)</code>.</p>
+             <p>The <code>input</code> in the brackets (called a parameter) lets you feed it different values each time — so one function handles many cases.</p>`
+    },
+    example: [
+      { code: `function greet(name) {`, note: `recipe named greet` },
+      { code: `  console.log("Hi " + name);`, note: `the steps` },
+      { code: `}`, note: `` },
+      { code: `greet("Sam");`, note: `run it → Hi Sam` },
+      { code: `greet("Bea");`, note: `run again → Hi Bea` }
+    ],
+    task: `Write a function called <code>double</code> that takes a number and prints it multiplied by 2. Then call it with <code>5</code> (should print 10). Press Check.`,
+    starter: `function double(n) {\n  \n}\n\ndouble(5);`,
+    hints: [
+      `Inside the function: console.log(n * 2);`,
+      `Make sure you also call it at the bottom: double(5);`,
+      `Full: the body is console.log(n * 2); and you call double(5);`
+    ],
+    check: (code, out) => {
+      if (!/function\s+double/.test(code)) return { pass:false, msg:"Define a function named exactly 'double'." };
+      if (!/double\s*\(/.test(code.replace(/function\s+double/,''))) return { pass:false, msg:"You defined it — now call it with double(5);" };
+      if (out.trim() !== "10") return { pass:false, msg:`Calling double(5) should print 10. You got "${out.trim()}". Multiply n by 2 inside.` };
+      return { pass:true, msg:"10 — spot on. You've written a reusable function. This is how real programs stay organised." };
+    }
+  },
+  {
+    id: "arrays",
+    name: "Lists of things",
+    sub: "Arrays",
+    concept: {
+      analogy: `An <b>array</b> is a shopping list. One name, many items, kept in order. Instead of a separate box for each thing, you have one box holding a numbered list.`,
+      body: `<p>So far each variable held one value. But real programs deal with <em>many</em> things — a list of customers, prices, jobs. That's an <strong>array</strong>: values inside square brackets <code>[ ]</code>, separated by commas.</p>
+             <p>Each item has a position number called an <strong>index</strong>, and here's the catch every coder trips on at first: <strong>counting starts at 0</strong>. The first item is index 0, the second is 1, and so on. You reach an item with <code>list[0]</code>.</p>`
+    },
+    example: [
+      { code: `let jobs = ["carpet", "sofa", "mattress"];`, note: `a list of 3` },
+      { code: `console.log(jobs[0]);`, note: `prints:  carpet  (first!)` },
+      { code: `console.log(jobs[2]);`, note: `prints:  mattress` },
+      { code: `console.log(jobs.length);`, note: `prints:  3  (how many)` }
+    ],
+    task: `Make an array called <code>fruits</code> holding <code>apple</code>, <code>banana</code>, and <code>cherry</code>. Then print just the second item (banana). Press Check.`,
+    starter: `let fruits = [];\n\n// print the second item\n`,
+    hints: [
+      `Fill the array: let fruits = ["apple", "banana", "cherry"];`,
+      `The second item is index 1 (because counting starts at 0).`,
+      `Print it: console.log(fruits[1]);`
+    ],
+    check: (code, out) => {
+      if (!/let\s+fruits\s*=\s*\[/.test(code)) return { pass:false, msg:"Make an array named 'fruits' using square brackets [ ]." };
+      if (!/console\.log/.test(code)) return { pass:false, msg:"Print an item with console.log(fruits[...])." };
+      if (out.trim().toLowerCase() !== "banana") return { pass:false, msg:`The second item is banana — but remember it's index 1, not 2. You got "${out.trim()}".` };
+      return { pass:true, msg:"banana — and you got the index right. Starting from 0 confuses everyone at first; you've already got it." };
+    }
+  },
+  {
+    id: "arrayloop",
+    name: "Going through a list",
+    sub: "Arrays + loops",
+    concept: {
+      analogy: `You have a list and you want to do something with <em>every</em> item — read each name on the shopping list out loud. A loop walks through the array one item at a time.`,
+      body: `<p>This is where two ideas combine into something genuinely powerful. A loop can visit every item in an array automatically, however long the list is.</p>
+             <p>The cleanest way is <code>for...of</code>: <code>for (let item of list)</code> means "for each item in the list, do this." No index counting needed — it just hands you each item in turn.</p>`
+    },
+    example: [
+      { code: `let prices = [40, 25, 60];`, note: `three prices` },
+      { code: `for (let p of prices) {`, note: `p = each one, in turn` },
+      { code: `  console.log("£" + p);`, note: `→ £40, then £25, then £60` },
+      { code: `}`, note: `` }
+    ],
+    task: `An array <code>names = ["Ana", "Ben", "Cara"]</code> is given. Loop through it and print each name. Press Check.`,
+    starter: `let names = ["Ana", "Ben", "Cara"];\n\nfor (let n of names) {\n  \n}`,
+    hints: [
+      `Inside the loop, print the current name: console.log(n);`,
+      `The loop already hands you each name as 'n' — you just print it.`,
+      `Answer: put console.log(n); between the braces.`
+    ],
+    check: (code, out) => {
+      if (!/for\s*\(/.test(code)) return { pass:false, msg:"Use a loop to go through the list." };
+      const lines = out.trim().split(/\s+/);
+      if (lines.join(",") !== "Ana,Ben,Cara") return { pass:false, msg:`Should print Ana, Ben, Cara (each on its own line). You got: ${out.trim() || "nothing"}.` };
+      return { pass:true, msg:"All three, automatically. Whether the list had 3 names or 3,000, your code wouldn't change. That's the power of loops + arrays." };
+    }
+  },
+  {
+    id: "objects",
+    name: "Describing one thing fully",
+    sub: "Objects",
+    concept: {
+      analogy: `An <b>object</b> is a form filled in about one thing. A customer isn't just a name — they have a name, a phone, an address. An object keeps all those details together under labels.`,
+      body: `<p>Arrays are great for lists of similar things. But when one thing has several <em>properties</em>, you use an <strong>object</strong>: curly braces <code>{ }</code> holding <code>label: value</code> pairs.</p>
+             <p>You read a property with a dot: <code>customer.name</code>. This is how nearly all real data is shaped — every user, product, and booking in every app is an object.</p>`
+    },
+    example: [
+      { code: `let customer = {`, note: `one customer...` },
+      { code: `  name: "Marina",`, note: `label: value` },
+      { code: `  job: "sofa clean",`, note: `` },
+      { code: `  price: 45`, note: `numbers need no quotes` },
+      { code: `};`, note: `` },
+      { code: `console.log(customer.name);`, note: `→ Marina` },
+      { code: `console.log(customer.price);`, note: `→ 45` }
+    ],
+    task: `Make an object called <code>book</code> with a <code>title</code> of <code>"Dune"</code> and <code>pages</code> of <code>412</code>. Then print the title. Press Check.`,
+    starter: `let book = {\n  \n};\n\n// print the title\n`,
+    hints: [
+      `Add the properties: title: "Dune", pages: 412`,
+      `Read a property with a dot: book.title`,
+      `Answer: console.log(book.title);`
+    ],
+    check: (code, out) => {
+      if (!/let\s+book\s*=\s*\{/.test(code)) return { pass:false, msg:"Make an object named 'book' using curly braces { }." };
+      if (!/title\s*:/.test(code)) return { pass:false, msg:"Give it a 'title' property: title: \"Dune\"" };
+      if (out.trim() !== "Dune") return { pass:false, msg:`Print the title with book.title — you got "${out.trim()}".` };
+      return { pass:true, msg:"Dune — perfect. You've just described a thing with multiple properties. This is the shape of almost all real data." };
+    }
+  },
+  {
+    id: "build-invoice",
+    name: "BUILD: A price calculator",
+    sub: "Project 1",
+    concept: {
+      analogy: `Time to build something you'd actually use. You run a cleaning business — let's make code that takes a list of jobs and works out the total bill. Everything you've learned, aimed at a real task.`,
+      body: `<p>Here's the plan, in plain English (this is how real programmers start — describe it before coding it):</p>
+             <p>1. We have a list of jobs, each an object with a name and price.<br>
+                2. We loop through them, printing each.<br>
+                3. We add up the prices as we go.<br>
+                4. We print the final total.</p>
+             <p>Read the example carefully — it uses arrays, objects, loops, and maths together. Then you'll finish the last piece yourself.</p>`
+    },
+    example: [
+      { code: `let jobs = [`, note: `a list of objects` },
+      { code: `  { name: "Carpet", price: 40 },`, note: `` },
+      { code: `  { name: "Sofa", price: 35 }`, note: `` },
+      { code: `];`, note: `` },
+      { code: `let total = 0;`, note: `start the running total` },
+      { code: `for (let job of jobs) {`, note: `visit each job` },
+      { code: `  console.log(job.name + ": £" + job.price);`, note: `` },
+      { code: `  total = total + job.price;`, note: `add to total` },
+      { code: `}`, note: `` },
+      { code: `console.log("TOTAL: £" + total);`, note: `→ £75` }
+    ],
+    task: `The jobs list below has THREE jobs. The loop prints each one. Your job: add the line that adds each price to <code>total</code>, so the final total prints correctly (should be £115). Press Check.`,
+    starter: `let jobs = [\n  { name: "Carpet", price: 40 },\n  { name: "Sofa", price: 35 },\n  { name: "Mattress", price: 40 }\n];\n\nlet total = 0;\n\nfor (let job of jobs) {\n  console.log(job.name + ": £" + job.price);\n  // add this job's price to total\n  \n}\n\nconsole.log("TOTAL: £" + total);`,
+    hints: [
+      `You need to add job.price to total each time round the loop.`,
+      `The pattern is: total = total + job.price;`,
+      `Put that line inside the loop, after the console.log.`
+    ],
+    check: (code, out) => {
+      if (!/total\s*=\s*total\s*\+|total\s*\+=/.test(code)) return { pass:false, msg:"Add each price to the total inside the loop: total = total + job.price;" };
+      if (!/TOTAL:\s*£115/.test(out)) return { pass:false, msg:`The total should come to £115 (40+35+40). Your output shows: ${out.trim().split('\\n').pop()}. Make sure the adding line is inside the loop.` };
+      return { pass:true, msg:"£115 — you just built a working price calculator for your own business. Arrays, objects, a loop and maths, all doing a real job together. This is genuinely useful code." };
+    }
+  },
+  {
+    id: "build-checker",
+    name: "BUILD: A smart sorter",
+    sub: "Project 2",
+    concept: {
+      analogy: `One more real build. You have a list of jobs with prices, and you want to automatically flag the big ones — say, anything over £50 needs a deposit. Code that makes decisions across a whole list.`,
+      body: `<p>The plan:</p>
+             <p>1. A list of job objects.<br>
+                2. Loop through them.<br>
+                3. For each, an <code>if</code> decides: big job or small job.<br>
+                4. Print a different message for each.</p>
+             <p>This combines everything: arrays, objects, loops, <em>and</em> decisions. It's the logic behind spam filters, alerts, recommendations — all of it is "go through a list and decide something about each item."</p>`
+    },
+    example: [
+      { code: `let jobs = [`, note: `` },
+      { code: `  { name: "Sofa", price: 35 },`, note: `` },
+      { code: `  { name: "Full house", price: 120 }`, note: `` },
+      { code: `];`, note: `` },
+      { code: `for (let job of jobs) {`, note: `` },
+      { code: `  if (job.price > 50) {`, note: `is it a big job?` },
+      { code: `    console.log(job.name + " — deposit needed");`, note: `` },
+      { code: `  } else {`, note: `` },
+      { code: `    console.log(job.name + " — pay on day");`, note: `` },
+      { code: `  }`, note: `` },
+      { code: `}`, note: `` }
+    ],
+    task: `Finish the loop below. For each job: if the price is over <code>50</code>, print <code>NAME — deposit needed</code>; otherwise print <code>NAME — pay on day</code>. (Use the exact wording.) Press Check.`,
+    starter: `let jobs = [\n  { name: "Sofa", price: 35 },\n  { name: "Full house", price: 120 },\n  { name: "Mattress", price: 40 }\n];\n\nfor (let job of jobs) {\n  // your if/else here\n  \n}`,
+    hints: [
+      `Start with: if (job.price > 50) {`,
+      `Inside: console.log(job.name + " — deposit needed");`,
+      `Add an else that prints job.name + " — pay on day". Watch the exact wording and the — dash.`
+    ],
+    check: (code, out) => {
+      if (!/if\s*\(/.test(code)) return { pass:false, msg:"You'll need an if/else inside the loop to decide about each job." };
+      const o = out.trim();
+      const wantDeposit = /Full house — deposit needed/.test(o);
+      const wantPay = /Sofa — pay on day/.test(o) && /Mattress — pay on day/.test(o);
+      if (!wantDeposit) return { pass:false, msg:`"Full house" is £120, so it should say "deposit needed". Check your condition is price > 50.` };
+      if (!wantPay) return { pass:false, msg:`Sofa (£35) and Mattress (£40) should both say "pay on day". Check your else branch and the exact wording.` };
+      return { pass:true, msg:"Flawless. Your code read a whole list and made the right call on every item — the exact pattern behind filters, alerts and recommendations everywhere. You're not learning to code anymore. You're coding." };
+    }
+  },
+  {
+    id: "capstone",
+    name: "Checkpoint challenge",
+    sub: "Prove the basics, from scratch",
+    concept: {
+      analogy: `No worked example this time — because you don't need one. You'll build this from a plain-English description, the way a real programmer works from a client's request. I believe you can.`,
+      body: `<p>You've learned output, variables, maths, decisions, loops, functions, arrays, and objects — and built two real tools. Prove it to yourself here, then we go further: more JavaScript, then real web pages you can see.</p>
+             <p>Take it slowly. Read the task, picture the steps, write one line at a time, and Run often to check as you go. Getting stuck and working out why <em>is</em> the skill.</p>`
+    },
+    example: [
+      { code: `// No example this time.`, note: `you've got this` },
+      { code: `// Plan it, write it, run it.`, note: `` }
+    ],
+    task: `Write a function called <code>report</code> that takes an array of numbers, adds them all up using a loop, and prints <code>Total: X</code>. Then call it with <code>[10, 20, 30]</code> — it should print <code>Total: 60</code>. Everything you need, you've already used before. Press Check.`,
+    starter: `function report(numbers) {\n  let total = 0;\n  // loop through numbers, add each to total\n  \n  // print "Total: " + total\n  \n}\n\nreport([10, 20, 30]);`,
+    hints: [
+      `Loop with: for (let n of numbers) { ... } and inside, total = total + n;`,
+      `After the loop (not inside it), print: console.log("Total: " + total);`,
+      `Structure: the for loop adds up, THEN the console.log prints once at the end. The print goes after the loop's closing brace.`
+    ],
+    check: (code, out) => {
+      if (!/function\s+report/.test(code)) return { pass:false, msg:"Define a function named 'report' that takes numbers." };
+      if (!/for\s*\(/.test(code)) return { pass:false, msg:"Use a loop inside to add the numbers up." };
+      if (out.trim() !== "Total: 60") return { pass:false, msg:`It should print exactly "Total: 60". You got "${out.trim()}". Check: is the print AFTER the loop, and are you adding each number?` };
+      return { pass:true, msg:"Total: 60 — and you built that with no example to copy. A function, a loop, a running total, and output, assembled from your own understanding. That's what a programmer does. Well done, seriously." };
+    }
+  },
+  {
+    id: "template",
+    name: "Joining text neatly",
+    sub: "Template strings",
+    concept: {
+      analogy: `Remember gluing text together with <code>+</code>? It works, but it's fiddly — easy to forget a space or a quote. There's a cleaner way that reads almost like a normal sentence with blanks filled in.`,
+      body: `<p>Instead of <code>"Hi " + name + ", you owe £" + total</code>, modern JavaScript lets you use <strong>backticks</strong> (the <code>\`</code> key, usually top-left on your keyboard) and drop variables straight into the text with <code>\${ }</code>.</p>
+             <p>So <code>\`Hi \${name}\`</code> becomes <code>Hi Marina</code> automatically. Everything inside <code>\${ }</code> gets worked out and slotted in. Far fewer quotes and plus signs to trip over.</p>`
+    },
+    example: [
+      { code: "let name = \"Bea\";", note: `` },
+      { code: "let age = 3;", note: `` },
+      { code: "console.log(`${name} is ${age}`);", note: `→ Bea is 3` }
+    ],
+    task: `Two variables are set: <code>item</code> and <code>price</code>. Using backticks and <code>\${ }</code>, print exactly: <code>Sofa costs £35</code>. Press Check.`,
+    starter: "let item = \"Sofa\";\nlet price = 35;\n\n// use backticks: `...${item}...${price}...`\n",
+    hints: [
+      "Start the text with a backtick ` not a normal quote.",
+      "Slot the variables in: `${item} costs £${price}`",
+      "Full line: console.log(`${item} costs £${price}`);"
+    ],
+    check: (code, out) => {
+      if (!/`/.test(code)) return { pass:false, msg:"Use backticks ` (top-left of your keyboard), not normal quotes, for this one." };
+      if (!/\$\{/.test(code)) return { pass:false, msg:"Drop the variables in with ${item} and ${price}." };
+      if (out.trim() !== "Sofa costs £35") return { pass:false, msg:`It should print exactly "Sofa costs £35". You got "${out.trim()}". Check your spacing and the £ sign.` };
+      return { pass:true, msg:"Sofa costs £35 — clean and readable. This is how nearly all real code builds text now. You'll use this constantly." };
+    }
+  },
+  {
+    id: "while",
+    name: "Repeat until done",
+    sub: "while loops",
+    concept: {
+      analogy: `A <code>for</code> loop is for when you know how many times ("do this 5 times"). A <b>while</b> loop is for "keep going <em>until</em> something changes" — like stirring until it thickens. You don't know how many stirs; you just stop when it's ready.`,
+      body: `<p>A <code>while</code> loop repeats as long as its condition stays true: <code>while (condition) { ... }</code>. Each round it re-checks. The moment the condition becomes false, it stops.</p>
+             <p><strong>The one danger:</strong> something inside must eventually make the condition false, or it loops forever. Usually that's a counter you change each time, like <code>count = count + 1</code>.</p>`
+    },
+    example: [
+      { code: `let count = 1;`, note: `start` },
+      { code: `while (count <= 3) {`, note: `keep going while true` },
+      { code: `  console.log(count);`, note: `→ 1, 2, 3` },
+      { code: `  count = count + 1;`, note: `← the vital step: move toward stopping` },
+      { code: `}`, note: `` }
+    ],
+    task: `Start with <code>let n = 5;</code>. Use a <code>while</code> loop to count DOWN, printing 5, 4, 3, 2, 1. (Subtract 1 each time.) Press Check.`,
+    starter: `let n = 5;\n\nwhile (n >= 1) {\n  \n  // don't forget to change n, or it loops forever!\n}`,
+    hints: [
+      `Print the current value first: console.log(n);`,
+      `Then move toward stopping by subtracting: n = n - 1;`,
+      `Both lines go inside the braces: print n, then n = n - 1;`
+    ],
+    check: (code, out) => {
+      if (!/while\s*\(/.test(code)) return { pass:false, msg:"Use a while loop for this one." };
+      const nums = out.trim().split(/\s+/);
+      if (nums.join(",") !== "5,4,3,2,1") return { pass:false, msg:`Should print 5 4 3 2 1 going down. You got: ${out.trim() || "nothing"}. Make sure you subtract 1 each time.` };
+      return { pass:true, msg:"5 down to 1 — perfect. And notice: nothing froze. You changed n each round so the loop knew when to stop. That's the whole trick with while loops." };
+    }
+  },
+  {
+    id: "objectarray",
+    name: "A list of records",
+    sub: "Arrays of objects",
+    concept: {
+      analogy: `This is the single most common shape of data in the real world: a <b>list where each item is a full record</b>. Your customer list, a playlist, messages in an inbox — every one is an array of objects.`,
+      body: `<p>You already know arrays (lists) and objects (records with labelled properties). Put them together: an array where every item is an object.</p>
+             <p>Then a loop can walk the list and read each record's properties. This exact pattern — loop through a list of objects, do something with each — is behind almost every screen in every app you've ever used.</p>`
+    },
+    example: [
+      { code: `let people = [`, note: `a list...` },
+      { code: `  { name: "Ana", age: 30 },`, note: `...of records` },
+      { code: `  { name: "Ben", age: 25 }`, note: `` },
+      { code: `];`, note: `` },
+      { code: `for (let p of people) {`, note: `visit each record` },
+      { code: "  console.log(`${p.name} is ${p.age}`);", note: `read its properties` },
+      { code: `}`, note: `→ Ana is 30 / Ben is 25` }
+    ],
+    task: `A list <code>products</code> holds three objects, each with a <code>name</code> and <code>price</code>. Loop through and print each as <code>NAME: £PRICE</code> (use backticks). Press Check.`,
+    starter: "let products = [\n  { name: \"Brush\", price: 5 },\n  { name: \"Cloth\", price: 3 },\n  { name: \"Spray\", price: 8 }\n];\n\nfor (let p of products) {\n  \n}",
+    hints: [
+      "Inside the loop, read both properties: p.name and p.price",
+      "Print with backticks: console.log(`${p.name}: £${p.price}`);",
+      "That one line inside the loop does it — the loop handles all three."
+    ],
+    check: (code, out) => {
+      if (!/for\s*\(/.test(code)) return { pass:false, msg:"Loop through the products list." };
+      const o = out.trim();
+      if (!/Brush: £5/.test(o) || !/Cloth: £3/.test(o) || !/Spray: £8/.test(o))
+        return { pass:false, msg:`Each line should read like "Brush: £5". You got: ${o || "nothing"}. Check you're reading p.name and p.price.` };
+      return { pass:true, msg:"All three records, read cleanly. You've just handled the most common data shape in all of programming. This is genuinely the core of real apps." };
+    }
+  },
+  {
+    id: "build-contacts",
+    name: "BUILD: A contact book",
+    sub: "Project 3",
+    concept: {
+      analogy: `Let's build a real one. A contact book is just an array of objects — each contact a record with a name and number — plus a function to find one by name. That's an app feature you've used a thousand times, and you're about to build its engine.`,
+      body: `<p>The plan:</p>
+             <p>1. A list of contacts, each an object.<br>
+                2. A function <code>find(name)</code> that loops through and returns the matching contact's number.<br>
+                3. Call it to look someone up.</p>
+             <p>The example shows the whole thing working. Your task is to complete the search — the piece that makes it actually useful.</p>`
+    },
+    example: [
+      { code: `let contacts = [`, note: `` },
+      { code: `  { name: "Sam", number: "555-1234" }`, note: `` },
+      { code: `];`, note: `` },
+      { code: `function find(who) {`, note: `search function` },
+      { code: `  for (let c of contacts) {`, note: `check each contact` },
+      { code: `    if (c.name === who) {`, note: `is this the one?` },
+      { code: "      console.log(`${c.name}: ${c.number}`);", note: `found it` },
+      { code: `    }`, note: `` },
+      { code: `  }`, note: `` },
+      { code: `}`, note: `` },
+      { code: `find("Sam");`, note: `→ Sam: 555-1234` }
+    ],
+    task: `The contact book below has three people. Complete the <code>find</code> function so that calling <code>find("Marina")</code> prints <code>Marina: 555-0002</code>. Fill in the loop and the if-check. Press Check.`,
+    starter: "let contacts = [\n  { name: \"Sam\", number: \"555-0001\" },\n  { name: \"Marina\", number: \"555-0002\" },\n  { name: \"Caroline\", number: \"555-0003\" }\n];\n\nfunction find(who) {\n  for (let c of contacts) {\n    // if this contact's name matches 'who', print name and number\n    \n  }\n}\n\nfind(\"Marina\");",
+    hints: [
+      "Inside the loop, check for a match: if (c.name === who) { ... }",
+      "Inside that if, print it: console.log(`${c.name}: ${c.number}`);",
+      "So: if (c.name === who) { console.log(`${c.name}: ${c.number}`); }"
+    ],
+    check: (code, out) => {
+      if (!/if\s*\(/.test(code)) return { pass:false, msg:"You need an if inside the loop to check if each contact matches." };
+      if (!/===/.test(code)) return { pass:false, msg:"Compare names with === (three equals means 'exactly equal to')." };
+      if (out.trim() !== "Marina: 555-0002") return { pass:false, msg:`Looking up Marina should print "Marina: 555-0002". You got "${out.trim()}". Check your if condition and what you print.` };
+      return { pass:true, msg:"Marina: 555-0002 — you built a working search. Type a name, get a result. That's a real app feature, built from a loop and an if. You're doing the real thing now." };
+    }
+  }
+];
+
+// ---- WEB (HTML/CSS) LESSONS — appended after JS section ----
+const webCourse = [
+  {
+    id: "html-intro",
+    name: "Your first web page",
+    sub: "HTML basics",
+    web: true,
+    concept: {
+      analogy: `Until now your code spoke to a console. Now you build something you can <em>see</em>. <b>HTML</b> is the skeleton of every web page — it labels each piece of content: "this is a heading," "this is a paragraph."`,
+      body: `<p>HTML uses <strong>tags</strong> in angle brackets. Most come in pairs: an opening tag and a closing tag with a slash. What's between them is the content.</p>
+             <p><code>&lt;h1&gt;Big Heading&lt;/h1&gt;</code> makes a large heading. <code>&lt;p&gt;some words&lt;/p&gt;</code> makes a paragraph. The tags don't show on the page — they just tell the browser what each piece <em>is</em>.</p>
+             <p>Watch the preview on the right update when you run it. This is a real web page.</p>`
+    },
+    example: [
+      { code: `<h1>Welcome</h1>`, note: `a big heading` },
+      { code: `<p>This is my page.</p>`, note: `a paragraph` }
+    ],
+    task: `Make a heading that says <code>Mattress Heroes</code> using <code>&lt;h1&gt;</code>, and below it a paragraph that says <code>Cleaning done right</code> using <code>&lt;p&gt;</code>. Run it and watch the preview. Press Check.`,
+    starter: `<h1></h1>\n<p></p>`,
+    hints: [
+      `Put your heading text between the h1 tags: <h1>Mattress Heroes</h1>`,
+      `Put the paragraph text between the p tags: <p>Cleaning done right</p>`,
+      `You should have both: an <h1> with the name and a <p> below it.`
+    ],
+    check: (code) => {
+      if (!/<h1>\s*Mattress Heroes\s*<\/h1>/i.test(code)) return { pass:false, msg:"Add a heading: <h1>Mattress Heroes</h1>" };
+      if (!/<p>\s*Cleaning done right\s*<\/p>/i.test(code)) return { pass:false, msg:"Add a paragraph below it: <p>Cleaning done right</p>" };
+      return { pass:true, msg:"Look at the preview — that's a real web page you just built. A heading and a paragraph, exactly like every site online starts. You're building things you can see now." };
+    }
+  },
+  {
+    id: "html-more",
+    name: "Links, lists & images",
+    sub: "More HTML",
+    web: true,
+    concept: {
+      analogy: `A page isn't just text. It has <b>lists</b> of things, <b>links</b> to other pages, and <b>images</b>. Each has its own tag — learn a handful and you can build most of a real page.`,
+      body: `<p>A bullet list uses <code>&lt;ul&gt;</code> (the whole list) with <code>&lt;li&gt;</code> for each item inside it.</p>
+             <p>A link uses <code>&lt;a href="..."&gt;click here&lt;/a&gt;</code> — the <code>href</code> is where it goes.</p>
+             <p>Notice <code>&lt;li&gt;</code> sits <em>inside</em> <code>&lt;ul&gt;</code>. Tags nesting inside other tags is how pages are structured — like boxes within boxes.</p>`
+    },
+    example: [
+      { code: `<ul>`, note: `start a list` },
+      { code: `  <li>Carpets</li>`, note: `an item` },
+      { code: `  <li>Sofas</li>`, note: `another` },
+      { code: `</ul>`, note: `end the list` }
+    ],
+    task: `Make a bullet list of three services: <code>Carpets</code>, <code>Sofas</code>, <code>Mattresses</code>. Use <code>&lt;ul&gt;</code> with three <code>&lt;li&gt;</code> items inside. Press Check.`,
+    starter: `<ul>\n  \n</ul>`,
+    hints: [
+      `Each service is an <li> item: <li>Carpets</li>`,
+      `Put all three <li> lines between the <ul> and </ul>.`,
+      `Three lines inside: <li>Carpets</li>, <li>Sofas</li>, <li>Mattresses</li>`
+    ],
+    check: (code) => {
+      const items = (code.match(/<li>/gi) || []).length;
+      if (!/<ul>/i.test(code)) return { pass:false, msg:"Wrap it in a <ul> ... </ul> list." };
+      if (items < 3) return { pass:false, msg:`A list needs three <li> items. You have ${items} so far.` };
+      if (!/Carpets/i.test(code) || !/Sofas/i.test(code) || !/Mattresses/i.test(code))
+        return { pass:false, msg:"The three items should be Carpets, Sofas, and Mattresses." };
+      return { pass:true, msg:"A proper list, showing in the preview. You've now got headings, paragraphs, and lists — the building blocks of real content." };
+    }
+  },
+  {
+    id: "css-intro",
+    name: "Making it look good",
+    sub: "CSS basics",
+    web: true,
+    concept: {
+      analogy: `HTML is the skeleton; <b>CSS</b> is the clothing and style. Same page, but now with colour, size, and spacing. CSS is what turns a plain document into something that looks designed.`,
+      body: `<p>You write CSS inside a <code>&lt;style&gt;</code> block. You pick an element (like <code>h1</code>) and set properties inside braces:</p>
+             <p><code>h1 { color: blue; }</code> makes every h1 blue. Common ones: <code>color</code> (text colour), <code>background</code> (behind it), <code>font-size</code> (bigger/smaller), <code>text-align: center</code>.</p>
+             <p>Change a value, run it, and watch the preview restyle instantly. This is where it gets fun.</p>`
+    },
+    example: [
+      { code: `<style>`, note: `styling starts` },
+      { code: `  h1 { color: teal; }`, note: `teal heading` },
+      { code: `  p { font-size: 20px; }`, note: `bigger text` },
+      { code: `</style>`, note: `` },
+      { code: `<h1>Styled!</h1>`, note: `` },
+      { code: `<p>Looking good.</p>`, note: `` }
+    ],
+    task: `A heading is given below. In the <code>&lt;style&gt;</code> block, make the <code>h1</code> the colour <code>darkorange</code> and centred with <code>text-align: center</code>. Run and watch it change. Press Check.`,
+    starter: `<style>\n  h1 {\n    \n  }\n</style>\n<h1>Mattress Heroes</h1>`,
+    hints: [
+      `Inside the h1 { } braces, add: color: darkorange;`,
+      `On the next line add: text-align: center;`,
+      `Both go inside the braces: h1 { color: darkorange; text-align: center; }`
+    ],
+    check: (code) => {
+      if (!/color\s*:\s*darkorange/i.test(code)) return { pass:false, msg:"Set the colour: color: darkorange; inside the h1 braces." };
+      if (!/text-align\s*:\s*center/i.test(code)) return { pass:false, msg:"Add text-align: center; to centre it." };
+      return { pass:true, msg:"Orange and centred — you just styled a page. HTML for the content, CSS for the look. This is exactly how every website is made." };
+    }
+  },
+  {
+    id: "web-capstone",
+    name: "BUILD: Your business page",
+    sub: "Final project",
+    web: true,
+    concept: {
+      analogy: `Everything comes together: a real one-page site for Mattress Heroes. Heading, description, a list of services, and styling to make it look yours. This is a page you could genuinely put online.`,
+      body: `<p>You'll combine it all: HTML for structure, CSS for style. The starter has the skeleton — your job is to fill it in and style it.</p>
+             <p>Take your time, run often, and watch the page come alive in the preview. When you're done, you'll have built an actual web page from nothing.</p>`
+    },
+    example: [
+      { code: `<!-- structure: -->`, note: `heading + text` },
+      { code: `<!-- + a <ul> list -->`, note: `services` },
+      { code: `<!-- + <style> to design it -->`, note: `make it yours` }
+    ],
+    task: `Build a page with: an <code>&lt;h1&gt;</code> saying <code>Mattress Heroes</code>, a <code>&lt;p&gt;</code> describing the business, and a <code>&lt;ul&gt;</code> with at least two services. Then style the h1 with any <code>color</code> you like. Press Check.`,
+    starter: `<style>\n  h1 {\n    \n  }\n</style>\n\n<h1></h1>\n<p></p>\n<ul>\n  \n</ul>`,
+    hints: [
+      `Fill the h1 with Mattress Heroes, the p with a sentence about the business.`,
+      `Add at least two <li> items inside the <ul>.`,
+      `Give the h1 a colour, e.g. color: teal; inside its braces.`
+    ],
+    check: (code) => {
+      if (!/<h1>\s*Mattress Heroes\s*<\/h1>/i.test(code)) return { pass:false, msg:"Add the heading: <h1>Mattress Heroes</h1>" };
+      if (!/<p>\s*\S.*<\/p>/i.test(code)) return { pass:false, msg:"Add a paragraph describing the business." };
+      if ((code.match(/<li>/gi) || []).length < 2) return { pass:false, msg:"Add at least two services as <li> items in the <ul>." };
+      if (!/h1\s*\{[^}]*color\s*:/i.test(code)) return { pass:false, msg:"Give the h1 a colour in the <style> block." };
+      return { pass:true, msg:"You built a complete web page — structure, content, and style, all your own. This is a real page you could host online today. From 'never coded' to this. Take a moment: you earned it." };
+    }
+  }
+];
+
+// Join both sections into one course
+course.push(...webCourse);
+
+// ---- STATE (in-memory; resets on reload) ----
+let progress = 0;      // highest unlocked lesson index
+let current = 0;
+let hintLevel = 0;
+let lastOutput = "";
+
+// ---- GAMIFICATION STATE ----
+let xp = 0;
+let streak = 1;                 // starts at day 1 the moment you begin
+let lessonsToday = 0;
+const DAILY_GOAL = 3;
+const XP_PER_LESSON = 20;
+const earnedXpFor = new Set();  // lessons already awarded, so XP isn't double-counted
+
+function awardXp(lessonIndex) {
+  if (earnedXpFor.has(lessonIndex)) return;  // no double XP for re-passing
+  earnedXpFor.add(lessonIndex);
+  xp += XP_PER_LESSON;
+  lessonsToday = Math.min(lessonsToday + 1, DAILY_GOAL);
+  popXp(`+${XP_PER_LESSON} XP  ⭐`);
+  updateStats();
+  if (lessonsToday === DAILY_GOAL) {
+    setTimeout(() => popXp(`Daily goal hit! 🔥 ${streak}-day streak`), 900);
+  }
+}
+
+function updateStats() {
+  const s = document.getElementById('streakNum');
+  const x = document.getElementById('xpNum');
+  const gt = document.getElementById('goalTxt');
+  const ring = document.getElementById('goalRing');
+  if (s) s.textContent = streak;
+  if (x) x.textContent = xp;
+  if (gt) gt.textContent = `${lessonsToday}/${DAILY_GOAL}`;
+  if (ring) {
+    const circ = 88; // 2πr for r=14
+    ring.style.strokeDashoffset = circ - (circ * lessonsToday / DAILY_GOAL);
+  }
+}
+
+function popXp(text) {
+  const p = document.getElementById('xpPop');
+  if (!p) return;
+  p.textContent = text;
+  p.classList.add('show');
+  clearTimeout(p._t);
+  p._t = setTimeout(() => p.classList.remove('show'), 1800);
+}
+let passedCurrent = false;
+
+// ---- RENDER SIDEBAR ----
+function renderSidebar() {
+  const el = document.getElementById('sidebar');
+  el.innerHTML = '<div class="sec-label">Part 1 · JavaScript</div>';
+  let webHeaderShown = false;
+  course.forEach((l, i) => {
+    if (l.web && !webHeaderShown) {
+      const h = document.createElement('div');
+      h.className = 'sec-label';
+      h.textContent = 'Part 2 · Web Pages';
+      el.appendChild(h);
+      webHeaderShown = true;
+    }
+    const locked = i > progress;
+    const d = document.createElement('div');
+    d.className = 'l-item' + (locked ? ' locked' : '') + (i === current ? ' active' : '') + (completed.has(i) ? ' done' : '');
+    if (!locked) d.onclick = () => loadLesson(i);
+    d.innerHTML = `<span class="dot">${completed.has(i) ? '✓' : (i+1)}</span>
+      <span class="nm">${l.name}</span>${locked ? '<span class="lock">🔒</span>' : ''}`;
+    el.appendChild(d);
+  });
+  const tn = document.getElementById('trackNow');
+  const tt = document.getElementById('trackTot');
+  if (tn) tn.textContent = current + 1;
+  if (tt) tt.textContent = course.length;
+}
+
+const completed = new Set();
+
+// ---- RENDER LESSON ----
+function loadLesson(i) {
+  current = i;
+  hintLevel = 0;
+  lastOutput = "";
+  passedCurrent = completed.has(i);
+  const l = course[i];
+
+  const exampleHTML = l.example.map(line =>
+    `<div class="ln"><span class="code">${esc(line.code)}</span>${line.note ? `<span class="note">${line.note}</span>` : ''}</div>`
+  ).join('');
+
+  document.getElementById('content').innerHTML = `
+    <span class="step-pill">Step ${i+1} · ${l.sub}</span>
+    <h2>${l.name}</h2>
+
+    <div class="block">
+      <h3>1 · The idea</h3>
+      <div class="analogy">${l.concept.analogy}</div>
+      ${l.concept.body}
+    </div>
+
+    <div class="block">
+      <h3>2 · Watch it work</h3>
+      <div class="example"><div class="body">${exampleHTML}</div></div>
+    </div>
+
+    <div class="block">
+      <h3>3 · Now you</h3>
+      <div class="task-box"><div class="th">Your task</div><p>${l.task}</p></div>
+      <div class="editor">
+        <div class="bar"><span>${l.web ? 'editor.html' : 'editor.js'}</span></div>
+        <textarea id="editor" spellcheck="false">${esc(l.starter)}</textarea>
+      </div>
+      <div class="actions">
+        <button class="run" onclick="runCode()">▶ Run</button>
+        <button class="check" onclick="checkCode()">✓ Check my answer</button>
+        <button class="hint" onclick="showHint()">Need a hint?</button>
+      </div>
+      ${l.web
+        ? `<div class="preview-label">Live preview</div><iframe id="preview" class="preview" sandbox="allow-same-origin"></iframe>`
+        : `<div class="out" id="out"><span class="dim">Run your code to see the output.</span></div>`}
+      <div id="feedback"></div>
+      <div class="actions">
+        <button class="next" id="nextBtn" onclick="nextLesson()" ${passedCurrent ? '' : 'disabled'}>Next lesson →</button>
+      </div>
+    </div>
+  `;
+  attachTab();
+  renderSidebar();
+  document.getElementById('content').scrollTop = 0;
+  if (l.web) runCode();
+}
+
+// ---- RUN CODE (sandboxed) ----
+function execute() {
+  const code = document.getElementById('editor').value;
+  const logs = [];
+  const fake = { log: (...a) => logs.push(a.map(x => typeof x === 'object' ? JSON.stringify(x) : String(x)).join(' ')) };
+  try {
+    new Function('console', code)(fake);
+    return { ok:true, out: logs.join('\n') };
+  } catch (e) {
+    return { ok:false, out: '', err: String(e.message) };
+  }
+}
+
+function runCode() {
+  const lesson = course[current];
+  if (lesson.web) {
+    const code = document.getElementById('editor').value;
+    const frame = document.getElementById('preview');
+    if (frame) frame.srcdoc = `<style>body{font-family:Georgia,serif;padding:14px;color:#16130d;}</style>` + code;
+    lastOutput = code;
+    return;
+  }
+  const r = execute();
+  const out = document.getElementById('out');
+  const fb = document.getElementById('feedback');
+  if (!r.ok) {
+    out.innerHTML = `<span class="err">✗ ${esc(r.err)}</span>`;
+    fb.className = 'feedback tip';
+    fb.innerHTML = friendlyError(r.err);
+    lastOutput = "";
+    return;
+  }
+  lastOutput = r.out;
+  out.innerHTML = r.out.trim() === "" ? '<span class="dim">Ran with no output yet.</span>' : esc(r.out);
+}
+
+function friendlyError(err) {
+  const e = String(err);
+  if (/Unexpected identifier/.test(e))
+    return `<b>Loose words outside the quotes.</b> The computer found some text that isn't inside quotes and isn't a command, so it didn't know what to do with it. Check that everything you want to print is <em>between</em> the <code>" "</code>, and that nothing extra is sitting after the <code>);</code>`;
+  if (/Unexpected end of input|missing \) after|Unexpected token/.test(e))
+    return `<b>A bracket or quote is missing.</b> Usually this means an opening <code>(</code>, <code>{</code> or <code>"</code> doesn't have its matching partner. Count them — each opener needs a closer.`;
+  if (/is not defined/.test(e)) {
+    const m = e.match(/(\w+) is not defined/);
+    return `<b>The computer doesn't recognise "${m ? m[1] : 'that word'}".</b> If it's meant to be text, it needs quotes around it. If it's a variable, check the spelling matches exactly where you created it.`;
+  }
+  if (/Unexpected string/.test(e))
+    return `<b>Two pieces of text aren't joined.</b> If you're sticking text together, you need a <code>+</code> between the parts.`;
+  return `<b>Read the message below carefully</b> — it points at where the computer got confused. That's a clue about what to fix, not a telling-off.`;
+}
+
+function checkCode() {
+  const code = document.getElementById('editor').value;
+  const lesson = course[current];
+  const fb = document.getElementById('feedback');
+
+  const markPass = (msg) => {
+    fb.className = 'feedback good';
+    fb.innerHTML = `✓ ${msg}`;
+    passedCurrent = true;
+    const firstTime = !completed.has(current);
+    completed.add(current);
+    if (current === progress) progress = Math.min(progress + 1, course.length - 1);
+    document.getElementById('nextBtn').disabled = false;
+    renderSidebar();
+    if (firstTime) awardXp(current);
+  };
+  const markFail = (msg) => {
+    fb.className = 'feedback bad';
+    fb.innerHTML = `Not quite yet — ${msg} Try again, and use a hint if you're stuck.`;
+  };
+
+  // Web lessons: check the HTML/CSS directly and refresh the preview.
+  if (lesson.web) {
+    runCode();
+    const result = lesson.check(code);
+    result.pass ? markPass(result.msg) : markFail(result.msg);
+    return;
+  }
+
+  // JS lessons: run the code and check its output.
+  const r = execute();
+  const out = document.getElementById('out');
+  if (!r.ok) {
+    out.innerHTML = `<span class="err">✗ ${esc(r.err)}</span>`;
+    fb.className = 'feedback bad';
+    fb.innerHTML = `Your code has an error, so let's fix that first. ${friendlyError(r.err)} <br><br><span class="dim">(The exact message is: ${esc(r.err)} — errors are clues, not failures.)</span>`;
+    return;
+  }
+  out.innerHTML = r.out.trim() === "" ? '<span class="dim">Ran with no output.</span>' : esc(r.out);
+
+  const result = lesson.check(code, r.out);
+  result.pass ? markPass(result.msg) : markFail(result.msg);
+}
+
+function showHint() {
+  const l = course[current];
+  const fb = document.getElementById('feedback');
+  const h = l.hints[Math.min(hintLevel, l.hints.length - 1)];
+  fb.className = 'feedback tip';
+  fb.innerHTML = `💡 Hint ${Math.min(hintLevel+1, l.hints.length)}: ${h}`;
+  hintLevel++;
+}
+
+function nextLesson() {
+  if (!passedCurrent) return;
+  if (current + 1 < course.length) loadLesson(current + 1);
+  else showFinish();
+}
+
+function showFinish() {
+  document.getElementById('content').innerHTML = `
+    <div class="celebrate">
+      <span class="step-pill">Course complete</span>
+      <h2>You can code.</h2>
+      <p>You started never having written a line. You now understand output, variables, maths, decisions, loops, functions, arrays, and objects — you've written every one yourself, and built three real tools including a price calculator for your own business.</p>
+      <p>These are the foundations of every program ever written. Everything else — websites, apps, games — is a combination of exactly these ideas. The rest is just practice.</p>
+      <div class="actions" style="justify-content:center; margin-top:20px;">
+        <button class="run" onclick="loadLesson(0)">Review from start</button>
+      </div>
+    </div>`;
+  completed.add(course.length - 1);
+  renderSidebar();
+}
+
+// ---- HELPERS ----
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function attachTab(){
+  const ta = document.getElementById('editor');
+  if(!ta) return;
+  ta.addEventListener('keydown', function(e){
+    if(e.key === 'Tab'){ e.preventDefault();
+      const s=this.selectionStart, en=this.selectionEnd;
+      this.value=this.value.slice(0,s)+'  '+this.value.slice(en);
+      this.selectionStart=this.selectionEnd=s+2;
+    }
+  });
+}
+
+loadLesson(0);
+updateStats();
+</script>
+</body>
+</html>
